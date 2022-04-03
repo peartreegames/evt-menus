@@ -1,5 +1,5 @@
 ## EvtGraph
-Code for "Creating a ScriptableObject Menu System in Unity" [YouTube videos](https://youtu.be/)
+Code for "Creating a ScriptableObject Menu System in Unity" [YouTube videos](https://youtu.be/PQJyPsjOpUE)
 
 ## Installation
 Can be installed via the Package Manager > Add Package From Git URL...
@@ -11,3 +11,6 @@ then the repo can be added
 
 `https://github.com/peartreegames/evt-menus.git`
 
+
+## Notes
+This system is more of an experiment than a fully fleshed out solution, but I think it has promise.
