@@ -1,0 +1,7 @@
+﻿.variable-item {
+    flex-direction: row;
+}
+
+.variable-name {
+    flex-grow: 1;
+}
