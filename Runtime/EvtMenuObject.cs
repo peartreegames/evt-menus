@@ -3,7 +3,7 @@ using System.Collections;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-namespace PeartreeGames.EvtMenus
+namespace PeartreeGames.Evt.Menus
 {
     [CreateAssetMenu(fileName = "menu_", menuName = "Evt/Menu", order = 0)]
     public class EvtMenuObject : ScriptableObject
@@ -11,31 +11,43 @@ namespace PeartreeGames.EvtMenus
         public EvtMenu Menu { get; set; }
         [SerializeField] private EvtMenu prefab;
         [SerializeField] private string sceneName;
-        [SerializeReference] private EvtMenuTransition transition;
+        [SerializeReference] private EvtTransition transition;
         [SerializeField] private bool canBeClosed = true;
         [SerializeField] private bool destroyOnClose;
         [SerializeField] private bool disablePreviousMenus;
 
         private EvtMenuObject _previousObject;
         private IEnumerator _coroutine;
-        [NonSerialized] private bool _isOpen;
+        [NonSerialized] public bool IsOpen;
+
+        public event Action<EvtMenu> OnOpen;
+        public event Action<EvtMenu> OnClose;
+
+        private void OnEnable()
+        {
+            IsOpen = false;
+        }
 
         public void Open() => Open(null, true);
         public void Open(EvtMenuObject previous) => Open(previous, true);
         public void Open(EvtMenuObject previous, bool focus)
         {
-            if (_isOpen) return;
-            _isOpen = true;
+            if (IsOpen) return;
+            IsOpen = true;
             if (Menu == null)
             {
                 Menu = Instantiate(prefab);
                 transition.Init(Menu);
                 Menu.MenuObject = this;
-                var scene = SceneManager.GetSceneByName(sceneName);
-                if (scene.IsValid() && scene.isLoaded) SceneManager.MoveGameObjectToScene(Menu.gameObject, scene);
+                if (sceneName != string.Empty)
+                {
+                    var scene = SceneManager.GetSceneByName(sceneName);
+                    if (scene.IsValid() && scene.isLoaded) SceneManager.MoveGameObjectToScene(Menu.gameObject, scene);
+                }
             }
 
-            _previousObject = previous;
+            if (_previousObject != this) _previousObject = previous;
+            OnOpen?.Invoke(Menu);
             Menu.gameObject.SetActive(true);
             if (_coroutine != null) Menu.StopCoroutine(_coroutine);
             _coroutine = Show(focus);
@@ -50,8 +62,9 @@ namespace PeartreeGames.EvtMenus
 
         public void Close()
         {
-            if (!canBeClosed || !_isOpen) return;
-            _isOpen = false;
+            if (!canBeClosed || !IsOpen) return;
+            IsOpen = false;
+            OnClose?.Invoke(Menu);
             if (_coroutine != null) Menu.StopCoroutine(_coroutine);
             _coroutine = Hide();
             Menu.StartCoroutine(_coroutine);

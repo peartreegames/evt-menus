@@ -2,10 +2,10 @@
 using System.Collections;
 using UnityEngine;
 
-namespace PeartreeGames.EvtMenus
+namespace PeartreeGames.Evt.Menus
 {
     [Serializable]
-    public class EvtMenuScaleTransition : EvtMenuTransition
+    public class EvtScaleTransition : EvtTransition
     {
         [SerializeField] private Vector3 openScale;
         [SerializeField] private Vector3 closeScale;
@@ -26,7 +26,7 @@ namespace PeartreeGames.EvtMenus
             while (elapsedTime < duration)
             {
                 menu.container.localScale = Vector3.Lerp(start, end, ease(elapsedTime / duration));
-                elapsedTime += Time.deltaTime;
+                elapsedTime += Time.unscaledDeltaTime;
                 yield return null;
             }
             menu.container.localScale = end;

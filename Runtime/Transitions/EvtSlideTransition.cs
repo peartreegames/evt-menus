@@ -2,10 +2,10 @@
 using System.Collections;
 using UnityEngine;
 
-namespace PeartreeGames.EvtMenus
+namespace PeartreeGames.Evt.Menus
 {
     [Serializable]
-    public class EvtMenuSlideTransition : EvtMenuTransition
+    public class EvtSlideTransition : EvtTransition
     {
         [SerializeField] private Vector2 openPosition;
         [SerializeField] private Vector2 closePosition;
@@ -18,28 +18,28 @@ namespace PeartreeGames.EvtMenus
             menu.container.anchoredPosition = closePosition;
         }
         
-        private IEnumerator Execute(EvtMenu menu, Vector2 start, Vector2 end, float duration, Func<float, float> ease)
+        public static IEnumerator Execute(RectTransform container, Vector2 start, Vector2 end, float duration, Func<float, float> ease)
         {
             var diff = end - start;
-            var current = menu.container.anchoredPosition - start;
+            var current = container.anchoredPosition - start;
             var elapsedTime = Vector2.Dot(current, diff) / Vector2.Dot(diff, diff) * duration;
             while (elapsedTime < duration)
             {
-                menu.container.anchoredPosition = Vector2.Lerp(start, end, ease(elapsedTime / duration));
-                elapsedTime += Time.deltaTime;
+                container.anchoredPosition = Vector2.Lerp(start, end, ease(elapsedTime / duration));
+                elapsedTime += Time.unscaledDeltaTime;
                 yield return null;
             }
 
-            menu.container.anchoredPosition = end;
+            container.anchoredPosition = end;
         }
         public override IEnumerator Show(EvtMenu menu)
         {
-            yield return Execute(menu, closePosition, openPosition, openDuration, openEasing.GetFunction());
+            yield return Execute(menu.container, closePosition, openPosition, openDuration, openEasing.GetFunction());
         }
         
         public override IEnumerator Hide(EvtMenu menu)
         {
-            yield return Execute(menu, openPosition, closePosition, closeDuration, closeEasing.GetFunction());
+            yield return Execute(menu.container, openPosition, closePosition, closeDuration, closeEasing.GetFunction());
         }
     }
 }

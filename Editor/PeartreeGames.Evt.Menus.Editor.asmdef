@@ -1,10 +1,14 @@
 {
-  "name": "PeartreeGames.EvtMenus",
-  "rootNamespace": "PeartreeGames.EvtMenus",
+  "name": "PeartreeGames.Evt.Menus.Editor",
+  "rootNamespace": "PeartreeGames.Evt.Menus.Editor",
   "references": [
-    "PeartreeGames.EvtVariables"
+    "PeartreeGames.Evt.Menus",
+    "PeartreeGames.Evt.Variables",
+    "PeartreeGames.Evt.Variables.Editor"
   ],
-  "includePlatforms": [],
+  "includePlatforms": [
+      "Editor"
+  ],
   "excludePlatforms": [],
   "allowUnsafeCode": false,
   "overrideReferences": false,

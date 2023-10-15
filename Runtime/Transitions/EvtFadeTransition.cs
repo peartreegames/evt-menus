@@ -2,10 +2,10 @@
 using System.Collections;
 using UnityEngine;
 
-namespace PeartreeGames.EvtMenus
+namespace PeartreeGames.Evt.Menus
 {
     [Serializable]
-    public class EvtMenuFadeTransition : EvtMenuTransition
+    public class EvtFadeTransition : EvtTransition
     {
         private CanvasGroup _canvasGroup;
         [SerializeField] private float openDuration;
@@ -19,27 +19,27 @@ namespace PeartreeGames.EvtMenus
             _canvasGroup.alpha = 0;
         }
         
-        private IEnumerator Execute(EvtMenu menu, float start, float end, float duration, Func<float, float> ease)
+        public static IEnumerator Execute(CanvasGroup canvasGroup, float start, float end, float duration, Func<float, float> ease)
         {
-            var current = _canvasGroup.alpha;
+            var current = canvasGroup.alpha;
             var elapsedTime = Mathf.InverseLerp(start, end, current) * duration;
             while (elapsedTime < duration)
             {
-                _canvasGroup.alpha = Mathf.Lerp(start, end, ease(elapsedTime / duration));
-                elapsedTime += Time.deltaTime;
+                canvasGroup.alpha = Mathf.Lerp(start, end, ease(elapsedTime / duration));
+                elapsedTime += Time.unscaledDeltaTime;
                 yield return null;
             }
-            _canvasGroup.alpha = end;
+            canvasGroup.alpha = end;
         }
         
         public override IEnumerator Show(EvtMenu menu)
         {
-            yield return Execute(menu, 0f, 1f, openDuration, openEasing.GetFunction());
+            yield return Execute(_canvasGroup, 0f, 1f, openDuration, openEasing.GetFunction());
         }
         
         public override IEnumerator Hide(EvtMenu menu)
         {
-            yield return Execute(menu, 1f, 0f, closeDuration, closeEasing.GetFunction());
+            yield return Execute(_canvasGroup, 1f, 0f, closeDuration, closeEasing.GetFunction());
         }
     }
 }

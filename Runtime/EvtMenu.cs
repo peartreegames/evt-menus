@@ -2,21 +2,21 @@
 using UnityEngine;
 using UnityEngine.EventSystems;
 
-namespace PeartreeGames.EvtMenus
+namespace PeartreeGames.Evt.Menus
 {
     public class EvtMenu : MonoBehaviour, ICancelHandler
     {
         public RectTransform container;
-        private ISelectHandler _previousSelection;
         private bool _isFocused;
         public EvtMenuObject MenuObject { get; set; }
+        protected ISelectHandler PreviousSelection { get; set; }
 
         public void Focus()
         {
             if (_isFocused) return;
             _isFocused = true;
-            _previousSelection ??= GetComponentInChildren<ISelectHandler>();
-            EventSystem.current.SetSelectedGameObject((_previousSelection as MonoBehaviour)?.gameObject);
+            PreviousSelection ??= GetComponentInChildren<ISelectHandler>();
+            EventSystem.current.SetSelectedGameObject((PreviousSelection as MonoBehaviour)?.gameObject);
         }
 
         public void Blur()
@@ -25,7 +25,8 @@ namespace PeartreeGames.EvtMenus
             _isFocused = false;
             var selected = EventSystem.current == null ? null : EventSystem.current.currentSelectedGameObject;
             var items = GetComponentsInChildren<ISelectHandler>();
-            _previousSelection = Array.Find(items, item => (item as MonoBehaviour)?.gameObject == selected);
+            PreviousSelection = Array.Find(items, item => (item as MonoBehaviour)?.gameObject == selected);
+            EventSystem.current.SetSelectedGameObject(null);
         }
 
         public void OnCancel(BaseEventData eventData) => MenuObject.Close();

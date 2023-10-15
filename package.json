@@ -1,7 +1,7 @@
 {
-    "name": "com.peartreegames.evtmenus",
-    "version": "0.1.0",
-    "displayName": "EvtMenus",
+    "name": "com.peartreegames.evt.menus",
+    "version": "0.2.0",
+    "displayName": "Evt.Menus",
     "description": "ScriptableObject Architecture Menu System",
     "unity": "2021.2",
     "unityRelease": "2f1",
@@ -9,7 +9,7 @@
     "changelogUrl": "https://github.com/peartreegames/evt-menus/changelog.html",
     "licensesUrl": "https://github.com/peartreegames/evt-menus/licensing.html",
     "dependencies": {
-      "com.peartreegames.evtvariables": "0.1.1"
+      "com.peartreegames.evt.variables": "0.2.1"
      },
      "keywords": [
       "peartree",

@@ -1,4 +1,4 @@
-## EvtGraph
+## Evt.Graph
 Code for "Creating a ScriptableObject Menu System in Unity" [YouTube videos](https://youtu.be/PQJyPsjOpUE)
 
 ## Installation

@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections;
 
-namespace PeartreeGames.EvtMenus
+namespace PeartreeGames.Evt.Menus
 {
-    public abstract class EvtMenuTransition
+    public abstract class EvtTransition
     {
         public abstract void Init(EvtMenu menu);
         public abstract IEnumerator Show(EvtMenu menu);
@@ -11,7 +11,7 @@ namespace PeartreeGames.EvtMenus
     }
 
     [Serializable]
-    public class EvtMenuSimpleTransition : EvtMenuTransition
+    public class EvtSimpleTransition : EvtTransition
     {
         public override void Init(EvtMenu menu)
         {

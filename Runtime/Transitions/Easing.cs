@@ -1,7 +1,8 @@
 ﻿using System;
 using UnityEngine;
+// ReSharper disable InconsistentNaming
 
-namespace PeartreeGames.EvtMenus
+namespace PeartreeGames.Evt.Menus
 {
     public enum Easing
     {

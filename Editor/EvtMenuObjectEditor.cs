@@ -1,41 +1,41 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using PeartreeGames.EvtVariables;
+using PeartreeGames.Evt.Variables;
 using UnityEditor;
 using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.UIElements;
 using Object = UnityEngine.Object;
 
-namespace PeartreeGames.EvtMenus.Editor
+namespace PeartreeGames.Evt.Menus.Editor
 {
     [CustomEditor(typeof(EvtMenuObject))]
     public class EvtMenuObjectEditor : UnityEditor.Editor
     {
-        private SerializedProperty prefabProperty;
-        private SerializedProperty sceneNameProperty;
-        private SerializedProperty transitionProperty;
-        private SerializedProperty canBeClosedProperty;
-        private SerializedProperty destroyOnCloseProperty;
-        private SerializedProperty disablePreviousProperty;
+        private SerializedProperty _prefabProperty;
+        private SerializedProperty _sceneNameProperty;
+        private SerializedProperty _transitionProperty;
+        private SerializedProperty _canBeClosedProperty;
+        private SerializedProperty _destroyOnCloseProperty;
+        private SerializedProperty _disablePreviousProperty;
 
-        private VisualElement transitionField;
-        private VisualElement rootElement;
-        private EvtMenuObject menu;
+        private VisualElement _transitionField;
+        private VisualElement _rootElement;
+        private EvtMenuObject _menu;
         private ListView _listView;
-        private List<EvtVariableObject> variableList;
+        private List<EvtVariable> _variableList;
 
         private void OnEnable()
         {
-            menu = (EvtMenuObject) target;
-            prefabProperty = serializedObject.FindProperty("prefab");
-            sceneNameProperty = serializedObject.FindProperty("sceneName");
-            transitionProperty = serializedObject.FindProperty("transition");
-            transitionProperty.managedReferenceValue ??= new EvtMenuSimpleTransition();
-            canBeClosedProperty = serializedObject.FindProperty("canBeClosed");
-            destroyOnCloseProperty = serializedObject.FindProperty("destroyOnClose");
-            disablePreviousProperty = serializedObject.FindProperty("disablePreviousMenus");
+            _menu = (EvtMenuObject) target;
+            _prefabProperty = serializedObject.FindProperty("prefab");
+            _sceneNameProperty = serializedObject.FindProperty("sceneName");
+            _transitionProperty = serializedObject.FindProperty("transition");
+            _transitionProperty.managedReferenceValue ??= new EvtSimpleTransition();
+            _canBeClosedProperty = serializedObject.FindProperty("canBeClosed");
+            _destroyOnCloseProperty = serializedObject.FindProperty("destroyOnClose");
+            _disablePreviousProperty = serializedObject.FindProperty("disablePreviousMenus");
             serializedObject.ApplyModifiedProperties();
         }
 
@@ -50,21 +50,31 @@ namespace PeartreeGames.EvtMenus.Editor
         {
             var elem = new VisualElement();
             elem.styleSheets.Add(Resources.Load<StyleSheet>("EvtMenus"));
-            rootElement = elem;
-            elem.Add(CreateProperty(prefabProperty));
-            elem.Add(CreateProperty(sceneNameProperty));
-            transitionField = CreateProperty(transitionProperty);
-            elem.Add(CreateTransitionDropdown());
-            elem.Add(transitionField);
-            elem.Add(CreateProperty(canBeClosedProperty));
-            elem.Add(CreateProperty(destroyOnCloseProperty));
-            elem.Add(CreateProperty(disablePreviousProperty));
+            _rootElement = elem;
             
+            var buttons = new VisualElement();
+            buttons.AddToClassList("flex-grow");
+            buttons.AddToClassList("flex-row");
+            var open = new Toggle("IsOpen") {value = ((EvtMenuObject) target).IsOpen};
+            open.SetEnabled(false);
+            open.AddToClassList("flex-grow");
+            buttons.Add(open);
+            buttons.Add(new Button(() => _menu.Open(null, true)) {text = "Open"});
+            buttons.Add(new Button(_menu.Close) {text = "Close"});
+            elem.Add(buttons);
+            
+            elem.Add(CreateProperty(_prefabProperty));
+            elem.Add(CreateProperty(_sceneNameProperty));
+            _transitionField = CreateProperty(_transitionProperty);
+            elem.Add(CreateTransitionDropdown());
+            elem.Add(_transitionField);
+            elem.Add(CreateProperty(_canBeClosedProperty));
+            elem.Add(CreateProperty(_destroyOnCloseProperty));
+            elem.Add(CreateProperty(_disablePreviousProperty));
+
             var list = CreateVariableList();
             elem.Add(list);
 
-            elem.Add(new Button(() => menu.Open(null, true)) {text = "Open"});
-            elem.Add(new Button(menu.Close) {text = "Close"});
 
             return elem;
         }
@@ -72,15 +82,16 @@ namespace PeartreeGames.EvtMenus.Editor
         private ListView CreateVariableList()
         {
             RefreshVariableList();
+
             void BindItem(VisualElement elem, int i)
             {
-                if (i >= variableList.Count) return;
+                if (i >= _variableList.Count) return;
                 var objField = elem.Q<ObjectField>();
-                objField.value = variableList[i];
+                objField.value = _variableList[i];
                 elem.Q<TextField>().value = objField.value != null ? objField.value.name : string.Empty;
             }
 
-            _listView = new ListView(variableList, 20, CreateVariableListItem, BindItem)
+            _listView = new ListView(_variableList, 20, CreateVariableListItem, BindItem)
             {
                 showFoldoutHeader = true,
                 headerTitle = "Variables",
@@ -94,12 +105,12 @@ namespace PeartreeGames.EvtMenus.Editor
         private VisualElement CreateVariableDropdown()
         {
             var variableData = GetEvtVariableData();
-            variableData.Insert(0, new VariableData()
+            variableData.Insert(0, new EvtVariableData
             {
                 Path = "Add Variable",
                 TypeName = null
             });
-            var dropdown = new DropdownField()
+            var dropdown = new DropdownField
             {
                 choices = variableData.Select(v => v.Path).ToList(),
                 value = "Add Variable"
@@ -107,7 +118,7 @@ namespace PeartreeGames.EvtMenus.Editor
             dropdown.RegisterValueChangedCallback(change =>
             {
                 var variable =
-                    CreateInstance(variableData.Find(v => v.Path == change.newValue).TypeName) as EvtVariableObject;
+                    CreateInstance(variableData.Find(v => v.Path == change.newValue).TypeName) as EvtVariable;
                 AddVariable(variable);
                 RefreshVariableList();
                 dropdown.SetValueWithoutNotify("Add Variable");
@@ -115,22 +126,22 @@ namespace PeartreeGames.EvtMenus.Editor
             return dropdown;
         }
 
-        private class VariableData
+        private class EvtVariableData
         {
             public string Path;
             public string TypeName;
         }
 
-        private static List<VariableData> GetEvtVariableData()
+        private static List<EvtVariableData> GetEvtVariableData()
         {
             var assemblies = AppDomain.CurrentDomain.GetAssemblies();
-            var variables = new List<VariableData>();
+            var variables = new List<EvtVariableData>();
             foreach (var assembly in assemblies)
             {
-                var list = assembly.GetTypes().Where(t => !t.IsAbstract && t.IsSubclassOf(typeof(EvtVariableObject)))
+                var list = assembly.GetTypes().Where(t => !t.IsAbstract && t.IsSubclassOf(typeof(EvtVariable)))
                     .SelectMany(t => t.GetCustomAttributesData().Where(
                         attr => attr.AttributeType == typeof(CreateAssetMenuAttribute)).Select(attr =>
-                        new VariableData()
+                        new EvtVariableData
                         {
                             Path = attr.NamedArguments?.FirstOrDefault(ar => ar.MemberName == "menuName").TypedValue
                                 .Value.ToString().Replace("Evt/", ""),
@@ -145,9 +156,9 @@ namespace PeartreeGames.EvtMenus.Editor
         private VisualElement CreateVariableListItem()
         {
             var itemElem = new VisualElement();
-            itemElem.AddToClassList("variable-item");
+            itemElem.AddToClassList("flex-row");
             var text = new TextField();
-            text.AddToClassList("variable-name");
+            text.AddToClassList("flex-grow");
             itemElem.Add(text);
             var obj = new ObjectField();
             obj.SetEnabled(false);
@@ -162,7 +173,7 @@ namespace PeartreeGames.EvtMenus.Editor
                 if (evt.keyCode != KeyCode.Return) return;
                 AssetDatabase.ClearLabels(obj.value);
                 obj.value.name = text.value;
-                AssetDatabase.SetLabels(obj.value, new[]{ text.value});
+                AssetDatabase.SetLabels(obj.value, new[] {text.value});
                 AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(obj.value));
             });
             text.RegisterCallback<BlurEvent>(_ =>
@@ -175,13 +186,13 @@ namespace PeartreeGames.EvtMenus.Editor
 
         private void RefreshVariableList()
         {
-            var path = AssetDatabase.GetAssetPath(menu);
+            var path = AssetDatabase.GetAssetPath(_menu);
             AssetDatabase.SaveAssets();
             AssetDatabase.ImportAsset(path);
             AssetDatabase.Refresh();
-            variableList = AssetDatabase.LoadAllAssetsAtPath(path).OfType<EvtVariableObject>().Reverse().ToList();
+            _variableList = AssetDatabase.LoadAllAssetsAtPath(path).OfType<EvtVariable>().Reverse().ToList();
             if (_listView == null) return;
-            _listView.itemsSource = variableList;
+            _listView.itemsSource = _variableList;
             _listView.RefreshItems();
         }
 
@@ -195,21 +206,22 @@ namespace PeartreeGames.EvtMenus.Editor
             foreach (var assembly in assemblies)
             {
                 var transitionList = assembly.GetTypes()
-                    .Where(t => !t.IsAbstract && t.IsSubclassOf(typeof(EvtMenuTransition))).ToList();
+                    .Where(t => !t.IsAbstract && t.IsSubclassOf(typeof(EvtTransition))).ToList();
                 transitions.AddRange(transitionList);
             }
 
-            var dropdown = new DropdownField()
+            var dropdown = new DropdownField
             {
                 choices = transitions.Select(t => t.Name).ToList(),
-                value = transitionProperty.managedReferenceValue.GetType().Name
+                value = _transitionProperty.managedReferenceValue.GetType().Name
             };
             dropdown.RegisterValueChangedCallback(change =>
             {
-                transitionField.RemoveFromHierarchy();
-                transitionProperty.managedReferenceValue = Activator.CreateInstance(transitions.Find(t => t.Name == change.newValue));
-                transitionField = CreateProperty(transitionProperty);
-                rootElement.Insert(3, transitionField);
+                _transitionField.RemoveFromHierarchy();
+                _transitionProperty.managedReferenceValue =
+                    Activator.CreateInstance(transitions.Find(t => t.Name == change.newValue));
+                _transitionField = CreateProperty(_transitionProperty);
+                _rootElement.Insert(3, _transitionField);
                 serializedObject.ApplyModifiedProperties();
             });
             return dropdown;
