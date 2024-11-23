@@ -18,22 +18,17 @@ namespace PeartreeGames.Evt.Menus
 
         private EvtMenuObject _previousObject;
         private IEnumerator _coroutine;
-        [NonSerialized] public bool IsOpen;
+        public bool IsOpen => EvtMenuManager.Contains(this);
+        public bool IsTransitioning { get; private set; }
 
         public event Action<EvtMenu> OnOpen;
         public event Action<EvtMenu> OnClose;
-
-        private void OnEnable()
-        {
-            IsOpen = false;
-        }
 
         public void Open() => Open(null, true);
         public void Open(EvtMenuObject previous) => Open(previous, true);
         public void Open(EvtMenuObject previous, bool focus)
         {
             if (IsOpen) return;
-            IsOpen = true;
             if (Menu == null)
             {
                 Menu = Instantiate(prefab);
@@ -46,9 +41,9 @@ namespace PeartreeGames.Evt.Menus
                 }
             }
 
-            if (_previousObject != this) _previousObject = previous;
             OnOpen?.Invoke(Menu);
             Menu.gameObject.SetActive(true);
+            _previousObject = previous;
             if (_coroutine != null) Menu.StopCoroutine(_coroutine);
             _coroutine = Show(focus);
             Menu.StartCoroutine(_coroutine);
@@ -56,25 +51,31 @@ namespace PeartreeGames.Evt.Menus
 
         private IEnumerator Show(bool focus)
         {
+            EvtMenuManager.Add(this);
+            if (disablePreviousMenus && _previousObject != null && _previousObject != this) _previousObject.Menu.StartCoroutine(_previousObject.Hide());
+            IsTransitioning = true;
             yield return transition.Show(Menu);
+            IsTransitioning = false;
             if (focus) Menu.Focus();
         }
 
-        public void Close()
+        public void Close(bool openPrevious = true)
         {
             if (!canBeClosed || !IsOpen) return;
-            IsOpen = false;
             OnClose?.Invoke(Menu);
             if (_coroutine != null) Menu.StopCoroutine(_coroutine);
-            _coroutine = Hide();
+            _coroutine = Hide(openPrevious);
             Menu.StartCoroutine(_coroutine);
         }
 
-        private IEnumerator Hide()
+        private IEnumerator Hide(bool openPrevious = true)
         {
+            EvtMenuManager.Remove(this);
+            IsTransitioning = true;
             yield return transition.Hide(Menu);
+            IsTransitioning = false;
             Menu.Blur();
-            if (_previousObject != null) _previousObject.Open(_previousObject._previousObject, true);
+            if (openPrevious && _previousObject != null) _previousObject.Open(_previousObject._previousObject, true);
             if (destroyOnClose)
             {
                 Destroy(Menu.gameObject);

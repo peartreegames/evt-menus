@@ -2,8 +2,6 @@
   "name": "PeartreeGames.Evt.Menus",
   "rootNamespace": "PeartreeGames.Evt.Menus",
   "references": [
-    "PeartreeGames.Evt.Variables",
-    "PeartreeGames.GamepadModule"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],

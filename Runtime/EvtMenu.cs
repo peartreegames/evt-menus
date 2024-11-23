@@ -29,6 +29,10 @@ namespace PeartreeGames.Evt.Menus
             EventSystem.current.SetSelectedGameObject(null);
         }
 
-        public void OnCancel(BaseEventData eventData) => MenuObject.Close();
+        public virtual void OnCancel(BaseEventData eventData)
+        {
+            if (!_isFocused || eventData.used) return;
+            MenuObject.Close();
+        }
     }
 }
